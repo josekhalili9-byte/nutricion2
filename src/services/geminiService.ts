@@ -1,0 +1,58 @@
+import { GoogleGenAI, Type } from '@google/genai';
+import { FoodAnalysis } from '../types';
+
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+
+export async function analyzeFoodImage(base64Image: string): Promise<Omit<FoodAnalysis, 'id' | 'imageUrl' | 'date'>> {
+  // Remove the data URL prefix if present
+  const base64Data = base64Image.replace(/^data:image\/\w+;base64,/, '');
+
+  const response = await ai.models.generateContent({
+    model: 'gemini-3-flash-preview',
+    contents: [
+      {
+        inlineData: {
+          data: base64Data,
+          mimeType: 'image/jpeg', // Assuming jpeg from camera
+        },
+      },
+      {
+        text: 'Analiza este alimento o platillo. Si es un platillo con varios ingredientes, dime el nombre del platillo y enlista todos los alimentos o ingredientes principales que lo componen. Dime si es saludable, calorías aproximadas, gramos de proteínas, grasas, carbohidratos y azúcar. También dame una recomendación (Saludable, Moderado o Poco saludable) y una calificación del 1 al 10 de qué tan saludable es.',
+      },
+    ],
+    config: {
+      responseMimeType: 'application/json',
+      responseSchema: {
+        type: Type.OBJECT,
+        properties: {
+          name: { type: Type.STRING, description: 'Nombre del alimento o platillo' },
+          ingredients: {
+            type: Type.ARRAY,
+            items: { type: Type.STRING },
+            description: 'Lista de ingredientes o alimentos que componen el platillo (si aplica)',
+          },
+          isHealthy: { type: Type.BOOLEAN, description: 'Si es saludable o no' },
+          calories: { type: Type.NUMBER, description: 'Calorías aproximadas' },
+          proteins: { type: Type.NUMBER, description: 'Gramos de proteínas' },
+          fats: { type: Type.NUMBER, description: 'Gramos de grasas' },
+          carbs: { type: Type.NUMBER, description: 'Gramos de carbohidratos' },
+          sugar: { type: Type.NUMBER, description: 'Gramos de azúcar' },
+          recommendation: {
+            type: Type.STRING,
+            description: 'Recomendación de salud',
+            enum: ['Saludable', 'Moderado', 'Poco saludable'],
+          },
+          score: { type: Type.NUMBER, description: 'Calificación del 1 al 10 de qué tan saludable es' },
+        },
+        required: ['name', 'isHealthy', 'calories', 'proteins', 'fats', 'carbs', 'sugar', 'recommendation', 'score'],
+      },
+    },
+  });
+
+  const text = response.text;
+  if (!text) {
+    throw new Error('No se pudo analizar la imagen.');
+  }
+
+  return JSON.parse(text);
+}

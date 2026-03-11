@@ -1,0 +1,7 @@
+{
+  "name": "FoodScan AI",
+  "description": "Una aplicación web moderna que usa la cámara para analizar alimentos y decir si son saludables usando IA.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
