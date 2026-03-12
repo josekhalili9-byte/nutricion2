@@ -6,8 +6,8 @@ let aiClient: GoogleGenAI | null = null;
 function getAIClient() {
   if (!aiClient) {
     const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) {
-      throw new Error('La clave API de Gemini no está configurada. Por favor, añádela en las variables de entorno (GEMINI_API_KEY).');
+    if (!apiKey || apiKey.trim() === '') {
+      throw new Error('La clave API de Gemini no está configurada. Por favor, ve a Vercel > Settings > Environment Variables y añade GEMINI_API_KEY con tu clave. Luego haz un nuevo Deploy.');
     }
     aiClient = new GoogleGenAI({ apiKey });
   }
