@@ -1,11 +1,24 @@
 import { GoogleGenAI, Type } from '@google/genai';
 import { FoodAnalysis } from '../types';
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+let aiClient: GoogleGenAI | null = null;
+
+function getAIClient() {
+  if (!aiClient) {
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      throw new Error('La clave API de Gemini no está configurada. Por favor, añádela en las variables de entorno (GEMINI_API_KEY).');
+    }
+    aiClient = new GoogleGenAI({ apiKey });
+  }
+  return aiClient;
+}
 
 export async function analyzeFoodImage(base64Image: string): Promise<Omit<FoodAnalysis, 'id' | 'imageUrl' | 'date'>> {
   // Remove the data URL prefix if present
   const base64Data = base64Image.replace(/^data:image\/\w+;base64,/, '');
+
+  const ai = getAIClient();
 
   const response = await ai.models.generateContent({
     model: 'gemini-3-flash-preview',

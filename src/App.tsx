@@ -47,9 +47,9 @@ export default function App() {
       };
       setCurrentAnalysis(newAnalysis);
       setHistory((prev) => [newAnalysis, ...prev]);
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      setError('Hubo un error al analizar la imagen. Intenta de nuevo.');
+      setError(err.message || 'Hubo un error al analizar la imagen. Intenta de nuevo.');
     } finally {
       setIsAnalyzing(false);
     }
