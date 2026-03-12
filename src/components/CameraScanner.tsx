@@ -15,14 +15,17 @@ export default function CameraScanner({ onCapture }: CameraScannerProps) {
 
   const startCamera = async () => {
     try {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error('Tu navegador no soporta el acceso a la cámara.');
+      }
       const mediaStream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'environment' },
+        video: { facingMode: { ideal: 'environment' } },
       });
       setStream(mediaStream);
       setIsCameraActive(true);
       setError(null);
-    } catch (err) {
-      setError('No se pudo acceder a la cámara. Por favor, otorga permisos.');
+    } catch (err: any) {
+      setError(err.message || 'No se pudo acceder a la cámara. Por favor, otorga permisos.');
       console.error(err);
     }
   };
@@ -45,6 +48,8 @@ export default function CameraScanner({ onCapture }: CameraScannerProps) {
   React.useEffect(() => {
     if (isCameraActive && videoRef.current && stream) {
       videoRef.current.srcObject = stream;
+      // Safari a veces requiere llamar a play() explícitamente
+      videoRef.current.play().catch(e => console.error("Error al reproducir video:", e));
     }
   }, [isCameraActive, stream]);
 
@@ -98,6 +103,7 @@ export default function CameraScanner({ onCapture }: CameraScannerProps) {
               ref={videoRef}
               autoPlay
               playsInline
+              muted
               className="w-full h-full object-cover"
             />
             <div className="absolute inset-0 border-4 border-emerald-500/30 rounded-3xl pointer-events-none"></div>
