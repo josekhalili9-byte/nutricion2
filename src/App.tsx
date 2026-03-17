@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Camera, Clock, BookOpen, Settings, Loader2 } from 'lucide-react';
+import { Search, Clock, BookOpen, Settings, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import CameraScanner from './components/CameraScanner';
+import FoodInput from './components/FoodInput';
 import ResultCard from './components/ResultCard';
 import History from './components/History';
 import Learn from './components/Learn';
 import AdminPanel from './components/AdminPanel';
-import { analyzeFoodImage } from './services/geminiService';
+import { analyzeFoodText } from './services/geminiService';
 import { FoodAnalysis } from './types';
 
 export default function App() {
@@ -34,22 +34,22 @@ export default function App() {
     localStorage.setItem('foodscan_history', JSON.stringify(history));
   }, [history]);
 
-  const handleCapture = async (base64Image: string) => {
+  const handleAnalyzeText = async (text: string) => {
     setIsAnalyzing(true);
     setError(null);
     try {
-      const result = await analyzeFoodImage(base64Image);
+      const result = await analyzeFoodText(text);
       const newAnalysis: FoodAnalysis = {
         ...result,
         id: Date.now().toString(),
-        imageUrl: base64Image,
+        imageUrl: `https://picsum.photos/seed/${encodeURIComponent(text)}/400/400`,
         date: new Date().toISOString(),
       };
       setCurrentAnalysis(newAnalysis);
       setHistory((prev) => [newAnalysis, ...prev]);
     } catch (err: any) {
       console.error(err);
-      setError(err.message || 'Hubo un error al analizar la imagen. Intenta de nuevo.');
+      setError(err.message || 'Hubo un error al analizar el texto. Intenta de nuevo.');
     } finally {
       setIsAnalyzing(false);
     }
@@ -69,7 +69,7 @@ export default function App() {
       <header className="bg-white px-6 py-4 flex justify-between items-center shadow-sm sticky top-0 z-10">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 bg-emerald-500 rounded-xl flex items-center justify-center">
-            <Camera className="w-5 h-5 text-white" />
+            <Search className="w-5 h-5 text-white" />
           </div>
           <h1 className="text-xl font-bold bg-gradient-to-r from-emerald-600 to-teal-500 bg-clip-text text-transparent">
             FoodScan AI
@@ -113,7 +113,7 @@ export default function App() {
                       {error}
                     </div>
                   )}
-                  <CameraScanner onCapture={handleCapture} />
+                  <FoodInput onAnalyze={handleAnalyzeText} />
                 </>
               )}
             </motion.div>
@@ -168,11 +168,11 @@ export default function App() {
             <div className={`w-14 h-14 rounded-full flex items-center justify-center shadow-lg transition-transform ${
               activeTab === 'scan' ? 'bg-emerald-500 text-white scale-110 shadow-emerald-500/30' : 'bg-white text-gray-400 border border-gray-100'
             }`}>
-              <Camera className="w-6 h-6" />
+              <Search className="w-6 h-6" />
             </div>
             <span className={`text-[10px] font-medium uppercase tracking-wider mt-2 ${
               activeTab === 'scan' ? 'text-emerald-600' : 'text-gray-400'
-            }`}>Escanear</span>
+            }`}>Analizar</span>
           </button>
 
           <button

@@ -152,7 +152,7 @@ export default function ResultCard({ analysis, onClose }: ResultCardProps) {
           onClick={onClose}
           className="mt-8 w-full bg-gray-900 hover:bg-gray-800 text-white font-medium py-3 rounded-xl transition-colors"
         >
-          Escanear otro alimento
+          Analizar otro alimento
         </button>
       </div>
     </motion.div>
